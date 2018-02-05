@@ -14,8 +14,8 @@ If you choose to connect, enter the other persons "secret number" (displayed at 
 Once connection is initiated, just type to send messages to the other person
 
 ## Todo
-[ ] Add contacts
+- [ ] Add contacts
 
-[ ] LAN search: see who is online
+- [ ] LAN search: see who is online
 
-[ ] Be able to distinguish incoming and outgoing messages
+- [ ] Be able to distinguish incoming and outgoing messages
