@@ -5,18 +5,21 @@ import time
 
 
 def getIp():
-    ifconfig = os.popen(
-        "ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1'").read()
-    ip = ifconfig.split("\n")[0]
-    return ip
-
+    try:
+        ifconfig = os.popen(
+            "ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1'").read()
+        return ifconfig.split("\n")[0]
+    except:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        if str(ip).startswith("127."):
+            return False
+        return ip
 
 global ip
-try:
-    ip = getIp()
-except:
-    ip = False
-
+ip = getIp()
 
 def init():
     global ip
