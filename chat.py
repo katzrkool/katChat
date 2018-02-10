@@ -1,8 +1,12 @@
 import socket
-from threading import Thread, Lock
+from threading import Thread
 import os
 import time
+import argparse
 
+parser = argparse.ArgumentParser()
+parser.add_argument("-m", type=str, default=False, help="Manually override auto ip finding")
+args = parser.parse_args()
 
 def getIp():
     try:
@@ -19,14 +23,19 @@ def getIp():
         return ip
 
 global ip
-ip = getIp()
+if args.m is False:
+    ip = getIp()
+else:
+    ip = args.m
 
 def init():
     global ip
     if ip is not False:
-        print("Hi! Welcome to KatChat. Your secret number is {}\n".format(ip))
+        print("Hi! Welcome to KatChat. Your secret number is {}".format(ip))
     else:
-        ip = input("Hi! Welcome to KatChat. We couldn't determine your secret number :(.Please enter your local ip.\n")
+        ip = input("Hi! Welcome to KatChat. We couldn't determine your secret number :(.Please enter your local ip.")
+
+    print("If your secret number doesn't work, find your local ip, and submit it manually with the -m flag\nEx: -m 192.168.0.2\n")
     choice = input(
         "If you would like to connect to someone else, type c,\nIf you would like to wait for a connection, press w.\t")
     while choice is not "c" and choice is not "w":
