@@ -3,6 +3,10 @@ from threading import Thread
 import os
 import time
 import argparse
+import sys
+
+global close
+close = False
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-m", type=str, default=False, help="Manually override auto ip finding")
@@ -13,7 +17,7 @@ def getIp():
         ifconfig = os.popen(
             "ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1'").read()
         return ifconfig.split("\n")[0]
-    except:
+    except OSError:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect(("8.8.8.8", 80))
         ip = s.getsockname()[0]
@@ -30,6 +34,7 @@ else:
 
 def init():
     global ip
+    global close
     if ip is not False:
         print("Hi! Welcome to KatChat. Your secret number is {}".format(ip))
     else:
@@ -48,7 +53,8 @@ def init():
             if input("Sorry, connection failed. Would you like to wait for a connection? (y/n)") is "y":
                 wait()
             else:
-                exit(0)
+                close = True
+                sys.exit(0)
     else:
         wait()
 
@@ -57,7 +63,7 @@ def isInt(i):
     try:
         int(i)
         return True
-    except:
+    except ValueError:
         return False
 
 
@@ -88,23 +94,40 @@ def connect():
 
 
 def listen(s, accept):
+    global close
     if accept is False:
         c, addr = s.accept()
     else:
         c = accept
-    while True:
-        print(c.recv(1024).decode())
+    while close is False:
+        msg = c.recv(1024).decode()
+        if msg == "Disconnect from Chat. #$52j":
+            s.close()
+            print("Disconnected from chat")
+            close = True
+            sys.exit(1)
+        else:
+            print(msg)
 
 
 def send():
+    global close
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.bind((ip, 16892))
     s.connect((secretNumber, 16891))
-    while True:
+    while close is False:
         msg = input("")
-        if msg is "exit()":
-            exit(0)
+        if msg == "exit()":
+            try:
+                s.send(str.encode("Disconnect from Chat. #$52j"))
+            except BrokenPipeError:
+                s.connect((secretNumber, 16891))
+                s.send(str.encode("Disconnect from Chat. #$52j"))
+            finally:
+                s.close()
+                close = True
+                sys.exit(1)
         else:
             try:
                 s.send(str.encode(msg))
